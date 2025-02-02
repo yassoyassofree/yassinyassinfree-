@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Settings</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.2.1/css/all.min.css">
+    <style>
+        body {
+            background-color: black;
+            color: aqua;
+        }
+        form {
+            margin-top: 20px;
+        }
+        input[type="text"], input[type="password"] {
+            padding: 10px;
+            font-size: 18px;
+            border: none;
+            border-radius: 4px;
+            width: calc(100% - 22px);
+            margin-bottom: 10px;
+        }
+        input[type="submit"] {
+            padding: 10px 15px;
+            font-size: 18px;
+            background-color: aqua;
+            color: black;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        input[type="submit"]:hover {
+            background-color: lightblue;
+        }
+        .success-message {
+            margin-top: 20px;
+            font-size: 20px;
+            color: yellow;
+        }
+        .back-button {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <a href="chat.html" class="back-button"><i class="fa-solid fa-arrow-left"></i></a>
+    <h1 style="margin-top: 40px;">Settings</h1>
+
+    <!-- Username Change Form -->
+    <p>Change Username</p>
+    <form id="usernameForm">
+        <input type="text" id="newUsername" placeholder="Enter new username" required>
+        <input type="submit" value="Update Username">
+    </form>
+    <p class="success-message" id="usernameSuccessMessage" style="display: none;">Username updated successfully!</p>
+
+    <script>
+        // Handle username change
+        document.getElementById('usernameForm').addEventListener('submit', function(event) {
+            event.preventDefault(); // Prevent form submission
+
+            // Get new username from the input field
+            const newUsername = document.getElementById('newUsername').value;
+
+            // Store the new username in local storage
+            localStorage.setItem('username', newUsername);
+
+            // Display the success message
+            document.getElementById('usernameSuccessMessage').style.display = 'block';
+            document.getElementById('newUsername').value = ''; // Clear the input field
+        });
+
+        // Handle password change
+    </script>
+</body>
+</html>

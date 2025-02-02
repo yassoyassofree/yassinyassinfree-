@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+    <meta name="google-signin-client_id" content="YOUR_CLIENT_ID.apps.googleusercontent.com">
+    <style>
+        body {
+            background-color: #000;
+            color: #00ff00;
+            font-family: 'Courier New', Courier, monospace;
+            text-align: center;
+            font-size: 1.2em;
+        }
+        .login-container {
+            width: 300px;
+            margin: 100px auto;
+            padding: 20px;
+            border: 1px solid #00ff00;
+            box-shadow: 0 0 20px rgba(0, 255, 0, 0.5);
+            border-radius: 10px;
+            background-color: rgba(0, 0, 0, 0.8);
+        }
+        .login-form label {
+            display: block;
+            margin-bottom: 10px;
+        }
+        .login-form input {
+            width: 100%;
+            height: 40px;
+            margin-bottom: 20px;
+            padding: 10px;
+            border: 1px solid #00ff00;
+            border-radius: 5px;
+            background-color: #1a1a1a;
+            color: #00ff00;
+        }
+        .login-form button {
+            width: 100%;
+            height: 40px;
+            background-color: #00ff00;
+            color: #000;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        .login-form button:hover {
+            background-color: #009900;
+            color: #fff;
+        }
+        .error-message {
+            color: #ff0000;
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-container">
+        <form class="login-form" id="loginForm">
+            <label for="email">Email:</label>
+            <input type="email" id="email" name="email" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required>
+            <button type="submit">Login</button>
+            <div class="error-message" id="errorMessage"></div>
+        </form>
+    </div>
+
+    <script>
+        const allowedEmailsWithPasswords = {
+            'ahmed.gabriel@capital-schools.com': 'capital 1',    
+            'hassan.waleed@capital-schools.com': 'capital 2',
+            'yaamen.ghoneim@capital-schools.com': 'capital 3',
+            'yassin.hussein@capital-schools.com': 'cis 1'
+        };
+
+        document.getElementById('loginForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorMessage = document.getElementById('errorMessage');
+
+            // Check if email password combination is valid
+            if (allowedEmailsWithPasswords[email] && allowedEmailsWithPasswords[email] === password) {
+                errorMessage.textContent = '';
+                alert('Login successful!');
+
+                // Extract the username from email
+                const username = email.split('@')[0];
+
+                // Store the username in local storage
+                localStorage.setItem('username', username);
+
+                // Redirect to the chat page
+                window.location.href = 'chose.html'; // Update this URL to your chat page
+            } else {
+                errorMessage.textContent = 'Invalid email or password.';
+            }
+        });
+    </script>
+</body>
+</html>

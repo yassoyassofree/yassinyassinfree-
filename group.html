@@ -1,0 +1,211 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Group Chat</title>
+    <style>
+        /* Styles similar to Discord chat */
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #2f3136;
+            color: #dcddde;
+            display: flex;
+            height: 100vh;
+        }
+
+        .sidebar {
+            width: 250px;
+            background-color: #23272a;
+            padding: 20px;
+            color: #fff;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .sidebar-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .sidebar-header .logo {
+            font-size: 24px;
+            margin-left: 10px;
+            color: #7289da;
+        }
+
+        .channel-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .channel-list li {
+            margin: 15px 0;
+            cursor: pointer;
+        }
+
+        .channel-list li:hover {
+            background-color: #3e444d;
+            border-radius: 5px;
+            padding: 5px;
+        }
+
+        /* Main chat area */
+        .main-chat {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* Message area */
+        .messages {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px;
+            background-color: #2f3136;
+        }
+
+        .message {
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+        }
+
+        .message .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background-color: #7289da;
+            margin-right: 10px;
+        }
+
+        .message .user-name {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+
+        .message .message-content {
+            background-color: #3e444d;
+            padding: 10px;
+            border-radius: 5px;
+            max-width: 70%;
+            word-wrap: break-word;
+        }
+
+        /* Input area */
+        .input-area {
+            display: flex;
+            padding: 10px;
+            background-color: #2f3136;
+            border-top: 1px solid #3e444d;
+        }
+
+        .input-area input {
+            width: 100%;
+            padding: 10px;
+            background-color: #40444b;
+            border: none;
+            border-radius: 5px;
+            color: #dcddde;
+        }
+
+        .input-area button {
+            background-color: #7289da;
+            border: none;
+            color: white;
+            padding: 10px;
+            margin-left: 10px;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        .input-area button:hover {
+            background-color: #5a6e98;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar">
+    <div class="sidebar-header">
+        <i class="fas fa-users"></i>
+        <span class="logo" id="groupName">Group Chat</span>
+    </div>
+    <ul class="channel-list">
+        <li># general</li>
+        <li># random</li>
+        <li># announcements</li>
+    </ul>
+</div>
+
+<!-- Main chat area -->
+<div class="main-chat">
+    <!-- Message Area -->
+    <div class="messages" id="messages"></div>
+
+    <!-- Input Area -->
+    <div class="input-area">
+        <input type="text" id="messageInput" placeholder="Type a message...">
+        <button onclick="sendMessage()">Send</button>
+    </div>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.6.1/firebase-database.js"></script>
+
+<script>
+    const firebaseConfig = {
+        apiKey: "YOUR_API_KEY",
+        authDomain: "YOUR_AUTH_DOMAIN",
+        databaseURL: "YOUR_DATABASE_URL",
+        projectId: "YOUR_PROJECT_ID",
+        storageBucket: "YOUR_STORAGE_BUCKET",
+        messagingSenderId: "YOUR_SENDER_ID",
+        appId: "YOUR_APP_ID"
+    };
+
+    // Initialize Firebase
+    const app = firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+
+    // Get groupId and username from URL
+    const urlParams = new URLSearchParams(window.location.search);
+    const groupId = urlParams.get('groupId');
+    const username = urlParams.get('username');
+    const groupRef = database.ref('groups/' + groupId);
+
+    document.getElementById('groupName').textContent = `Group ${groupId}`;
+
+    // Listen for messages in real-time
+    groupRef.child('messages').on('child_added', function(snapshot) {
+        const message = snapshot.val();
+        const messageDiv = document.createElement('div');
+        messageDiv.classList.add('message');
+        messageDiv.innerHTML = `
+            <div class="user-avatar"></div>
+            <div class="message-content">
+                <span class="user-name">${message.username}:</span> ${message.text}
+            </div>
+        `;
+        document.getElementById('messages').appendChild(messageDiv);
+    });
+
+    function sendMessage() {
+        const messageInput = document.getElementById('messageInput');
+        const message = messageInput.value.trim();
+        if (message) {
+            groupRef.child('messages').push({
+                username: username,
+                text: message
+            });
+            messageInput.value = '';
+        }
+    }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        body {
+            display: flex;
+            height: 100vh;
+            margin: 0;
+            padding: 0;
+            background-color: #333;
+            font-family: 'Courier New', Courier, monospace;
+        }
+
+        #sidebar {
+            width: 200px;
+            background-color: #444;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        #sidebar.open {
+            width: 200px;
+            /* Expanded sidebar width */
+        }
+
+        #sidebar .sidebar-toggle {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 50px;
+            background-color: #555;
+            cursor: pointer;
+        }
+
+        #menu {
+            display: none;
+            padding: 0;
+        }
+
+        #menu.open {
+            display: block;
+        }
+
+        #menu ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        #menu li {
+            padding: 10px;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        #menu li:hover {
+            background-color: #666;
+        }
+
+        .container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+            margin-left: 20px;
+            /* Space for sidebar */
+            position: relative;
+        }
+
+        .chat-box {
+            flex: 1;
+            padding: 10px;
+            overflow-y: auto;
+            border-bottom: 1px solid #ccc;
+            background-color: #fff;
+        }
+
+        .input-box {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+        }
+
+        .input-box input[type="text"] {
+            width: 60%;
+            padding: 10px;
+            margin-right: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+        .input-box button,
+        .input-box .microphone-btn,
+        .input-box .camera-btn,
+        .input-box .upload-btn,
+        .input-box .video-btn {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: white;
+            cursor: pointer;
+        }
+
+        .input-box button:hover,
+        .input-box .microphone-btn:hover,
+        .input-box .camera-btn:hover,
+        .input-box .upload-btn:hover,
+        .input-box .video-btn:hover {
+            background-color: #3e8e41;
+        }
+
+        .message {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            position: relative;
+        }
+
+        .username {
+            font-weight: bold;
+            color: #666;
+        }
+
+        .delete-btn {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: red;
+        }
+
+        .video-container,
+        .image-container {
+            position: relative;
+            margin-bottom: 20px;
+        }
+
+        video {
+            width: 100%;
+            height: auto;
+        }
+
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            color: #555;
+            font-size: 24px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="sidebar">
+        <div class="sidebar-toggle" aria-label="Toggle Sidebar">
+            <i class="fa-solid fa-ellipsis-vertical"></i>
+        </div>
+        <div class="menu" id="menu">
+            <ul>
+                <li onclick="cheats()">Cheats</li>
+                <li onclick="unblockers()">Unblockers</li>
+            </ul>
+        </div>
+    </div>
+    <div class="container">
+        <a href="settings.html" class="settings-icon"><i class="fa-solid fa-gear"></i></a> <!-- Settings Icon -->
+        <div class="chat-box" id="chatBox">
+            <!-- Messages will be displayed here -->
+        </div>
+        <div class="input-box">
+            <input type="text" id="messageInput" placeholder="Type your message here">
+            <button id="sendBtn">Send</button>
+            <button id="recordBtn" class="microphone-btn"><i class="fa-solid fa-microphone"></i></button>
+            <button id="cameraBtn" class="camera-btn"><i class="fa-solid fa-camera"></i></button>
+            <button id="videoBtn" class="video-btn">Capture Video</button>
+            <input type="file" id="fileInput" class="upload-btn" style="display: none;">
+            <label for="fileInput" class="upload-btn"><i class="fa-solid fa-arrow-up-from-bracket"></i></label>
+        </div>
+    </div>
+
+    <script>
+        const toggleBtn = document.querySelector('.sidebar-toggle');
+        const sidebar = document.getElementById('sidebar');
+        const menu = document.getElementById('menu');
+
+        toggleBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            menu.classList.toggle('open'); // Show/hide the menu when the icon is clicked
+        });
+
+        function cheats() {
+            window.location.href = "cheats.html"; // Redirect to "cheats" page
+        }
+
+        function unblockers() {
+            window.location.href = "unblockers.html"; // Redirect to "unblockers" page
+        }
+
+        const username = localStorage.getItem('username') || 'Guest';
+
+        function loadMessages() {
+            const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+            const chatBox = document.getElementById('chatBox');
+            chatBox.innerHTML = ''; // Clear chat box before loading new messages
+            savedMessages.forEach((msg, index) => {
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                deleteButton.onclick = () => deleteMessage(index);
+
+                if (msg.videoUrl) {
+                    messageElement.innerHTML = `<span class="username">${msg.username}</span>: <video controls><source src="${msg.videoUrl}" type="video/webm">Your browser does not support the video element.</video>`;
+                } else if (msg.pictureUrl) {
+                    messageElement.innerHTML = `<span class="username">${msg.username}</span>: <img src="${msg.pictureUrl}" style="max-width: 100%; height: auto;"/>`;
+                } else if (msg.audioUrl) {
+                    messageElement.innerHTML = `<span class="username">${msg.username}</span>: <audio controls><source src="${msg.audioUrl}" type="audio/ogg">Your browser does not support the audio element.</audio>`;
+                } else if (msg.fileUrl) {
+                    messageElement.innerHTML = `<span class="username">${msg.username}</span>: <a href="${msg.fileUrl}" target="_blank">File: ${msg.fileName}</a>`;
+                } else {
+                    messageElement.innerHTML = `<span class="username">${msg.username}</span>: ${msg.text}`;
+                }
+
+                messageElement.appendChild(deleteButton); // Append delete button
+                chatBox.appendChild(messageElement);
+            });
+            chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom after loading messages
+        }
+
+        function deleteMessage(index) {
+            const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+            savedMessages.splice(index, 1); // Remove the message at the specified index
+            localStorage.setItem('messages', JSON.stringify(savedMessages)); // Update local storage
+            loadMessages(); // Reload messages to update the UI
+        }
+
+        const sendMessage = function(message) {
+            const chatBox = document.getElementById('chatBox');
+            if (message) {
+                const messageObject = {
+                    username: username,
+                    text: message,
+                };
+
+                const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+                savedMessages.push(messageObject);
+                localStorage.setItem('messages', JSON.stringify(savedMessages));
+
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.innerHTML = `<span class="username">${username}</span>: ${message}`;
+
+                // Add delete button for the sent message
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                deleteButton.onclick = () => { deleteMessage(savedMessages.length - 1); }; // Delete self-sent message
+                messageElement.appendChild(deleteButton);
+                
+                chatBox.appendChild(messageElement);
+                chatBox.scrollTop = chatBox.scrollHeight; // Scroll to bottom
+            }
+        };
+
+        document.getElementById('sendBtn').addEventListener('click', () => {
+            const messageInput = document.getElementById('messageInput');
+            sendMessage(messageInput.value.trim());
+            messageInput.value = ''; // Clear input
+        });
+
+        document.getElementById('messageInput').addEventListener('keypress', function (e) {
+            if (e.key === 'Enter') {
+                const messageInput = document.getElementById('messageInput');
+                sendMessage(messageInput.value.trim());
+                messageInput.value = ''; // Clear input
+            }
+        });
+
+        // Voice Recording Logic
+        let mediaRecorder;
+        const recordBtn = document.getElementById('recordBtn');
+        const audioChunks = [];
+
+        recordBtn.addEventListener('click', async () => {
+            if (!mediaRecorder) {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+                mediaRecorder = new MediaRecorder(stream);
+
+                mediaRecorder.ondataavailable = (event) => {
+                    audioChunks.push(event.data);
+                };
+
+                mediaRecorder.onstop = async () => {
+                    const audioBlob = new Blob(audioChunks, { type: 'audio/ogg; codecs=opus' });
+                    const audioUrl = URL.createObjectURL(audioBlob);
+                    audioChunks.length = 0; // Reset the chunks
+
+                    // Save the audio message
+                    const messageObject = {
+                        username: username,
+                        text: 'Audio message',
+                        audioUrl: audioUrl
+                    };
+                    const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+                    savedMessages.push(messageObject);
+                    localStorage.setItem('messages', JSON.stringify(savedMessages));
+
+                    const messageElement = document.createElement('div');
+                    messageElement.classList.add('message');
+                    messageElement.innerHTML = `<span class="username">${username}</span>: <audio controls><source src="${audioUrl}" type="audio/ogg">Your browser does not support the audio element.</audio>`;
+
+                    // Add delete button for the sent audio message
+                    const deleteButton = document.createElement('button');
+                    deleteButton.classList.add('delete-btn');
+                    deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                    deleteButton.onclick = () => { deleteMessage(savedMessages.length - 1); }; // Delete self-sent message
+                    messageElement.appendChild(deleteButton);
+                    
+                    document.getElementById('chatBox').appendChild(messageElement);
+                };
+
+                mediaRecorder.start();
+                recordBtn.classList.add('recording');
+                recordBtn.innerHTML = '<i class="fa-solid fa-stop"></i>'; // Change to Stop icon
+            } else {
+                mediaRecorder.stop();
+                recordBtn.classList.remove('recording');
+                recordBtn.innerHTML = '<i class="fa-solid fa-microphone"></i>'; // Change back to Mic icon
+                mediaRecorder = null; // Reset mediaRecorder
+            }
+        });
+
+        // Camera Logic
+        const cameraBtn = document.getElementById('cameraBtn');
+        let cameraStream;
+        let videoElement;
+        let videoRecorder;
+        let recordedChunks = [];
+
+        cameraBtn.addEventListener('click', async () => {
+            try {
+                cameraStream = await navigator.mediaDevices.getUserMedia({ video: true });
+                videoElement = document.createElement('video');
+                videoElement.srcObject = cameraStream;
+                videoElement.play();
+                document.body.appendChild(videoElement); // Show the video stream
+
+                // Create a capture picture button
+                const captureBtn = document.createElement('button');
+                captureBtn.textContent = 'Capture Picture';
+                document.body.appendChild(captureBtn);
+
+                // Capture Video Picture
+                captureBtn.addEventListener('click', () => {
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d');
+                    canvas.width = videoElement.videoWidth;
+                    canvas.height = videoElement.videoHeight;
+                    context.drawImage(videoElement, 0, 0, canvas.width, canvas.height);
+                    const pictureDataUrl = canvas.toDataURL('image/png');
+
+                    // Display picture with close button and send button
+                    displayCapturedImage(pictureDataUrl);
+
+                    // Stop the camera
+                    stopCamera();
+                    captureBtn.remove(); // Remove capture button after capturing the image
+                });
+
+                // Allow the user to record a video
+                const recordVideoBtn = document.createElement('button');
+                recordVideoBtn.textContent = 'Record Video';
+                document.body.appendChild(recordVideoBtn);
+
+                recordVideoBtn.addEventListener('click', async () => {
+                    if (!videoRecorder) {
+                        recordedChunks = [];
+                        videoRecorder = new MediaRecorder(cameraStream);
+
+                        videoRecorder.ondataavailable = event => {
+                            if (event.data.size > 0) {
+                                recordedChunks.push(event.data);
+                            }
+                        };
+
+                        videoRecorder.onstop = async () => {
+                            const videoBlob = new Blob(recordedChunks, { type: 'video/webm' });
+                            const videoUrl = URL.createObjectURL(videoBlob);
+
+                            // Save the video message
+                            const messageObject = {
+                                username: username,
+                                videoUrl: videoUrl
+                            };
+                            const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+                            savedMessages.push(messageObject);
+                            localStorage.setItem('messages', JSON.stringify(savedMessages));
+
+                            const messageElement = document.createElement('div');
+                            messageElement.classList.add('message');
+                            messageElement.innerHTML = `<span class="username">${username}</span>: <video controls><source src="${videoUrl}" type="video/webm">Your browser does not support the video element.</video>`;
+
+                            // Add delete button for the sent video message
+                            const deleteButton = document.createElement('button');
+                            deleteButton.classList.add('delete-btn');
+                            deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                            deleteButton.onclick = () => { deleteMessage(savedMessages.length - 1); }; // Delete self-sent message
+                            messageElement.appendChild(deleteButton);
+                            
+                            document.getElementById('chatBox').appendChild(messageElement);
+
+                            // Stop accessing the camera and remove buttons after recording
+                            stopCamera();
+                            recordVideoBtn.remove(); // Remove record video button after stopping
+                            captureBtn.remove(); // Remove capture button if visible
+                        };
+
+                        videoRecorder.start();
+                        recordVideoBtn.innerHTML = 'Stop Recording';
+                    } else {
+                        videoRecorder.stop();
+                        recordVideoBtn.innerHTML = 'Record Video';
+                        videoRecorder = null; // Reset videoRecorder
+                    }
+                });
+            } catch (error) {
+                console.error('Error accessing camera:', error);
+            }
+        });
+
+        function displayCapturedImage(imageSrc) {
+            const imageContainer = document.createElement('div');
+            imageContainer.classList.add('image-container');
+
+            const imageElement = document.createElement('img');
+            imageElement.src = imageSrc;
+
+            const closeButton = document.createElement('button');
+            closeButton.classList.add('close-btn');
+            closeButton.innerHTML = 'X';
+            closeButton.onclick = () => {
+                imageContainer.remove(); // Remove image from DOM
+            };
+
+            imageContainer.appendChild(closeButton);
+            imageContainer.appendChild(imageElement);
+            document.body.appendChild(imageContainer);
+
+            const sendButton = document.createElement('button');
+            sendButton.textContent = 'Send Picture';
+            sendButton.onclick = () => {
+                const messageObject = {
+                    username: username,
+                    pictureUrl: imageSrc
+                };
+                const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+                savedMessages.push(messageObject);
+                localStorage.setItem('messages', JSON.stringify(savedMessages));
+
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.innerHTML = `<span class="username">${username}</span>: <img src="${imageSrc}" style="max-width: 100%; height: auto;"/>`;
+
+                // Add delete button for the sent image message
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                deleteButton.onclick = () => { deleteMessage(savedMessages.length - 1); }; // Delete self-sent message
+                messageElement.appendChild(deleteButton);
+                
+                document.getElementById('chatBox').appendChild(messageElement);
+
+                imageContainer.remove(); // Remove image after sending
+            };
+            imageContainer.appendChild(sendButton);
+        }
+
+        function stopCamera() {
+            if (cameraStream) {
+                cameraStream.getTracks().forEach(track => track.stop()); // Stop all tracks
+                cameraStream = null; // Reset cameraStream
+                if (videoElement) {
+                    videoElement.remove(); // Remove video element from DOM
+                    videoElement = null; // Reset video element
+                }
+            }
+        }
+
+        // File Upload Logic
+        const fileInput = document.getElementById('fileInput');
+
+        fileInput.addEventListener('change', function() {
+            const files = fileInput.files;
+            if (files.length > 0) {
+                const file = files[0];
+                const fileUrl = URL.createObjectURL(file);
+
+                const messageObject = {
+                    username: username,
+                    fileName: file.name,
+                    fileUrl: fileUrl
+                };
+
+                const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+                savedMessages.push(messageObject);
+                localStorage.setItem('messages', JSON.stringify(savedMessages));
+
+                const messageElement = document.createElement('div');
+                messageElement.classList.add('message');
+                messageElement.innerHTML = `<span class="username">${username}</span>: <a href="${fileUrl}" target="_blank">File: ${file.name}</a>`;
+
+                // Add delete button for the sent file message
+                const deleteButton = document.createElement('button');
+                deleteButton.classList.add('delete-btn');
+                deleteButton.innerHTML = '<i class="fa-solid fa-trash"></i>';
+                deleteButton.onclick = () => { deleteMessage(savedMessages.length - 1); }; // Delete self-sent message
+                messageElement.appendChild(deleteButton);
+                
+                document.getElementById('chatBox').appendChild(messageElement);
+            }
+            fileInput.value = ''; // Clear the file input
+        });
+
+        let lastMessageCount = 0; // Track the last number of messages
+
+        function checkForNewMessages() {
+            const savedMessages = JSON.parse(localStorage.getItem('messages')) || [];
+            if (savedMessages.length !== lastMessageCount) {
+                loadMessages();
+                lastMessageCount = savedMessages.length; // Update the count
+            }
+        }
+
+        // Call the checkForNewMessages function every 2 seconds (2000 milliseconds)
+        setInterval(checkForNewMessages, 2000);
+
+        window.onload = loadMessages; // Load messages on page load
+    </script>
+
+</body>
+
+</html>
